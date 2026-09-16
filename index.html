@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Anonymous Digital Polling System</title>
+  <link rel="stylesheet" href="style.css" />
+  <!-- Google Fonts & Font Awesome Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <header class="navbar">
+    <div class="brand">
+      <div class="brand-icon"><i class="fa-solid fa-check-to-slot"></i></div>
+      <div class="brand-text">
+        <h1>VoteVault</h1>
+        <span>Anonymous Polling System</span>
+      </div>
+    </div>
+    <div class="nav-actions">
+      <div class="status-chip" id="pollStatusBadge">
+        <span class="status-dot"></span>
+        <span id="pollStatusText">Poll Active</span>
+      </div>
+      <button class="btn btn-secondary" id="openAdminModalBtn">
+        <i class="fa-solid fa-lock"></i> Admin Panel
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-layout">
+    
+    <!-- Left Column: Voting Booth -->
+    <section class="card voting-section">
+      <div class="section-header">
+        <div>
+          <h2 id="electionTitle">College Representative Election 2026</h2>
+          <p id="electionDescription" class="subtitle">Select your candidate and cast your vote anonymously.</p>
+        </div>
+        <span class="badge" id="totalVotesTop">0 Votes</span>
+      </div>
+
+      <!-- Voter Status Alert Banner -->
+      <div id="voterBanner" class="alert-banner info">
+        <i class="fa-solid fa-circle-info"></i>
+        <span id="voterBannerText">Your ballot is 100% anonymous. Single-vote rule applies on this browser.</span>
+      </div>
+
+      <!-- Candidates Grid -->
+      <div id="candidateGrid" class="candidate-grid">
+        <!-- Dynamically rendered via JS -->
+      </div>
+
+      <!-- Action Button -->
+      <div class="voting-footer">
+        <button id="submitVoteBtn" class="btn btn-primary btn-lg" disabled>
+          <i class="fa-solid fa-paper-plane"></i> Cast Secure Ballot
+        </button>
+      </div>
+    </section>
+
+    <!-- Right Column: Live Results & Analytics -->
+    <section class="card results-section">
+      <div class="section-header">
+        <div>
+          <h2>Live Results</h2>
+          <p class="subtitle">Real-time outcome & voting breakdown</p>
+        </div>
+        <button id="exportCsvBtn" class="btn btn-outline btn-sm">
+          <i class="fa-solid fa-file-csv"></i> Export CSV
+        </button>
+      </div>
+
+      <!-- Winner Announcement Banner (Visible when closed) -->
+      <div id="winnerBanner" class="winner-box hidden">
+        <div class="trophy-icon"><i class="fa-solid fa-trophy"></i></div>
+        <div>
+          <span class="winner-tag">OFFICIAL WINNER</span>
+          <h3 id="winnerName">-</h3>
+          <p id="winnerStats">0 votes (0%)</p>
+        </div>
+      </div>
+
+      <!-- Live Result Bars Container -->
+      <div id="resultsList" class="results-list">
+        <!-- Dynamically rendered via JS -->
+      </div>
+
+      <!-- Summary Stats Footer -->
+      <div class="stats-footer">
+        <div class="stat-item">
+          <span class="stat-label">Total Votes</span>
+          <span class="stat-value" id="summaryTotalVotes">0</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Total Candidates</span>
+          <span class="stat-value" id="summaryTotalCandidates">0</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Leading</span>
+          <span class="stat-value" id="summaryLeadingCandidate">-</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Admin Login Modal -->
+  <div id="adminLoginModal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-shield-halved"></i> Admin Authentication</h3>
+        <button class="modal-close" id="closeLoginModalBtn">&times;</button>
+      </div>
+      <form id="adminLoginForm">
+        <p class="subtitle">Enter the administrator passcode to access election settings.</p>
+        <div class="input-group">
+          <label for="adminPassword">Admin Passcode</label>
+          <input type="password" id="adminPassword" placeholder="Default passcode: admin123" required />
+          <span class="error-msg" id="loginErrorMsg"></span>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="cancelLoginBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary">Unlock Panel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Admin Control Dashboard Modal -->
+  <div id="adminPanelModal" class="modal hidden">
+    <div class="modal-content modal-lg">
+      <div class="modal-header">
+        <div class="admin-title">
+          <i class="fa-solid fa-sliders"></i>
+          <div>
+            <h3>Election Administration</h3>
+            <span class="subtitle">Manage titles, candidates, and voting status</span>
+          </div>
+        </div>
+        <button class="modal-close" id="closeAdminPanelBtn">&times;</button>
+      </div>
+
+      <div class="admin-body">
+        <!-- Section: Poll Configuration -->
+        <div class="admin-card">
+          <h4><i class="fa-solid fa-pen-to-square"></i> General Settings</h4>
+          <div class="input-row">
+            <div class="input-group">
+              <label>Election Title</label>
+              <input type="text" id="editTitleInput" />
+            </div>
+            <div class="input-group">
+              <label>Description / Guidelines</label>
+              <input type="text" id="editDescInput" />
+            </div>
+          </div>
+          <div class="toggle-row">
+            <button id="togglePollStatusBtn" class="btn btn-outline">
+              <i class="fa-solid fa-toggle-on"></i> <span id="togglePollStatusLabel">Close Polling</span>
+            </button>
+            <button id="saveGeneralSettingsBtn" class="btn btn-primary">Save Info</button>
+          </div>
+        </div>
+
+        <!-- Section: Add Candidate -->
+        <div class="admin-card">
+          <h4><i class="fa-solid fa-user-plus"></i> Add New Candidate</h4>
+          <form id="addCandidateForm" class="add-candidate-form">
+            <div class="input-group">
+              <label>Candidate Name</label>
+              <input type="text" id="newCandName" placeholder="e.g. Rahul Patil" required />
+            </div>
+            <div class="input-group">
+              <label>Party / Roll / Bio</label>
+              <input type="text" id="newCandBio" placeholder="e.g. CS Dept, 3rd Year" required />
+            </div>
+            <div class="input-group short">
+              <label>Symbol / Icon</label>
+              <input type="text" id="newCandSymbol" placeholder="Icon/Emoji (⚡)" maxlength="3" required />
+            </div>
+            <button type="submit" class="btn btn-primary align-end">
+              <i class="fa-solid fa-plus"></i> Add
+            </button>
+          </form>
+        </div>
+
+        <!-- Section: Candidate List Table -->
+        <div class="admin-card">
+          <h4><i class="fa-solid fa-users"></i> Existing Candidates</h4>
+          <div class="table-container">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Symbol</th>
+                  <th>Name</th>
+                  <th>Bio</th>
+                  <th>Votes</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="adminCandidateTableBody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Section: Dangerous Actions (Reset) -->
+        <div class="admin-card danger-card">
+          <div>
+            <h4>Reset Zone</h4>
+            <p class="subtitle">Clear voter status on this device or reset all votes back to zero.</p>
+          </div>
+          <div class="danger-actions">
+            <button id="resetMyVoteStatusBtn" class="btn btn-secondary">
+              <i class="fa-solid fa-arrow-rotate-left"></i> Unlock My Device
+            </button>
+            <button id="resetAllVotesBtn" class="btn btn-danger">
+              <i class="fa-solid fa-trash-can"></i> Zero All Votes
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="exitAdminBtn">Exit Admin Panel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Popups -->
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
